@@ -7,19 +7,15 @@
 
 namespace key_multitude {
 
-// Sorted unique keys: O(n) insertion, O(log n) ranks/ranges, O(1) selection.
 class VectorBackend {
 public:
     bool insertKey(int key) {
-        auto position = std::lower_bound(keys_.begin(), keys_.end(), key);
-        if (position != keys_.end() && *position == key)
-            return false;
-
-        keys_.insert(position, key);
+        const auto insertionIt = std::upper_bound(keys_.begin(), keys_.end(), key);
+        keys_.insert(insertionIt, key);
         return true;
     }
 
-    std::size_t size() const { return keys_.size(); }
+    std::size_t size() const noexcept { return keys_.size(); }
 
     std::size_t countKeysLessThan(int key) const {
         return static_cast<std::size_t>(
@@ -27,12 +23,14 @@ public:
     }
 
     std::size_t countKeysInRange(int left, int right) const {
-        if (left > right)
+        if (left > right) {
             throw std::invalid_argument(
                 "Left range boundary must not exceed right boundary");
+        }
 
-        if (left == right)
+        if (left == right) {
             return 0;
+        }
 
         return static_cast<std::size_t>(
             std::upper_bound(keys_.begin(), keys_.end(), right) -
@@ -40,7 +38,7 @@ public:
     }
 
     int getKeyBySortedIndex(std::size_t zeroBasedIndex) const {
-        return keys_[zeroBasedIndex];
+        return keys_.at(zeroBasedIndex);
     }
 
 private:
