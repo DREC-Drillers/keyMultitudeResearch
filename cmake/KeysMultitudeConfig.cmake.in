@@ -1,4 +1,7 @@
 @PACKAGE_INIT@
 
+include(CMakeFindDependencyMacro)
+find_dependency(GeneralFunctions CONFIG REQUIRED COMPONENTS tree)
+
 include("${CMAKE_CURRENT_LIST_DIR}/KeysMultitudeTargets.cmake")
 check_required_components(KeysMultitude)
