@@ -23,7 +23,7 @@ public:
             throw std::invalid_argument(
                 "Left range boundary must not exceed right boundary");
         }
-        
+
         return static_cast<std::size_t>(
             std::distance(keys_.upper_bound(left), keys_.upper_bound(right)));
     }
@@ -33,7 +33,8 @@ public:
             throw std::out_of_range("SetBackend index must be in [0, size())");
         }
 
-        return *std::next(keys_.begin(), static_cast<std::ptrdiff_t>(zeroBasedIndex));
+        return *std::next(keys_.begin(),
+                          static_cast<std::ptrdiff_t>(zeroBasedIndex));
     }
 
 private:
