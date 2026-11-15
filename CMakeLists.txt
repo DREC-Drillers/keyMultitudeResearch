@@ -18,7 +18,7 @@ target_link_libraries(keys_multitude INTERFACE GeneralFunctions::tree)
 target_sources(keys_multitude INTERFACE
     FILE_SET HEADERS
     BASE_DIRS "${CMAKE_CURRENT_SOURCE_DIR}"
-    FILES keyMultitude.hpp backends/vectorBackend.hpp backends/bTreeBackend.hpp
+    FILES keyMultitude.hpp backends/vectorBackend.hpp backends/setBackend.hpp backends/bTreeBackend.hpp
 )
 
 if(KEYS_MULTITUDE_INSTALL)

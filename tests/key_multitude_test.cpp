@@ -11,6 +11,7 @@
 #include <gtest/gtest.h>
 
 #include "backends/bTreeBackend.hpp"
+#include "backends/setBackend.hpp"
 #include "backends/vectorBackend.hpp"
 #include "keyMultitude.hpp"
 
@@ -29,8 +30,29 @@ class KeyMultitudeTest : public ::testing::Test {};
 TYPED_TEST_SUITE(KeyMultitudeTest, Backends);
 
 static_assert(key_multitude::KeyMultitudeBackend<key_multitude::VectorBackend>);
+static_assert(key_multitude::KeyMultitudeBackend<key_multitude::SetBackend>);
 static_assert(key_multitude::KeyMultitudeBackend<key_multitude::BTreeBackend<2>>);
 static_assert(!key_multitude::KeyMultitudeBackend<int>);
+
+TEST(SetBackendTest, StoresUniqueKeysAndSupportsOrderQueries) {
+    key_multitude::KeyMultitude<key_multitude::SetBackend> keys;
+    EXPECT_TRUE(keys.insertKey(8));
+    EXPECT_TRUE(keys.insertKey(2));
+    EXPECT_TRUE(keys.insertKey(-1));
+    EXPECT_FALSE(keys.insertKey(2));
+
+    EXPECT_EQ(keys.size(), 3U);
+    EXPECT_EQ(keys.countKeysInRange(-1, 8), 2U);
+    EXPECT_EQ(keys.countKeysInRange(2, 2), 0U);
+    EXPECT_EQ(keys.countKeysLessThan(2), 1U);
+    EXPECT_EQ(keys.countKeysLessThan(3), 2U);
+    EXPECT_EQ(keys.findKthSmallestKey(1), -1);
+    EXPECT_EQ(keys.findKthSmallestKey(2), 2);
+    EXPECT_EQ(keys.findKthSmallestKey(3), 8);
+    EXPECT_THROW(keys.findKthSmallestKey(0), std::out_of_range);
+    EXPECT_THROW(keys.findKthSmallestKey(4), std::out_of_range);
+    EXPECT_THROW(keys.countKeysInRange(8, -1), std::invalid_argument);
+}
 
 TYPED_TEST(KeyMultitudeTest, EmptyMultiset) {
     const key_multitude::KeyMultitude<TypeParam> keys;
