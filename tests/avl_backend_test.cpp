@@ -189,6 +189,8 @@ TEST(AVLBackendTest, SortedReverseAndShuffledInputsStayBalanced) {
     }
 }
 
+// This test intentionally checks that moved-from trees remain empty and reusable.
+// NOLINTBEGIN(clang-analyzer-cplusplus.Move, bugprone-use-after-move)
 TEST(AVLBackendTest, CopiesAreIndependentAndMovedFromTreesAreReusable) {
     AVLTree original;
     for (int key : {8, 2, -1, 5, 20}) {
@@ -221,6 +223,7 @@ TEST(AVLBackendTest, CopiesAreIndependentAndMovedFromTreesAreReusable) {
         EXPECT_TRUE(validateAVL(*tree));
     }
 }
+// NOLINTEND(clang-analyzer-cplusplus.Move, bugprone-use-after-move)
 } // namespace
 
 static_assert(key_multitude::KeyMultitudeBackend<key_multitude::AVLTreeBackend>);
