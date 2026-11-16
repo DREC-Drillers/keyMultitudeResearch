@@ -48,6 +48,7 @@
         "CMAKE_BUILD_TYPE": "Release",
         "CMAKE_EXPORT_COMPILE_COMMANDS": null,
         "KEYS_MULTITUDE_BUILD_TESTS": false,
+        "KEYS_MULTITUDE_BUILD_EXECUTABLE": false,
         "KEYS_MULTITUDE_INSTALL": true,
         "CMAKE_INSTALL_PREFIX": "${sourceDir}/build/install"
       }

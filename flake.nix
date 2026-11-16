@@ -31,6 +31,7 @@
         propagatedBuildInputs = [ generalFunctionsPackage ];
         buildInputs = [ gtest ];
         cmakeFlags = [
+          "-DKEYS_MULTITUDE_BUILD_EXECUTABLE=OFF"
           "-DKEYS_MULTITUDE_BUILD_TESTS=ON"
           "-DKEYS_MULTITUDE_INSTALL=ON"
         ];
