@@ -12,9 +12,7 @@ public:
 
     std::size_t size() const noexcept { return tree_.size(); }
 
-    std::size_t countKeysLessThan(int key) const {
-        return tree_.lower_bound(key);
-    }
+    std::size_t countKeysLessThan(int key) const { return tree_.lower_bound(key); }
 
     std::size_t countKeysInRange(int left, int right) const {
         if (left > right) {
