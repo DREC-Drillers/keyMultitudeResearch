@@ -31,7 +31,9 @@ public:
         return tree_.countKeysLessThanOrEqual(right) - tree_.countKeysLessThanOrEqual(left);
     }
 
-    int getKeyBySortedIndex(std::size_t index) const;
+    int getKeyBySortedIndex(std::size_t zeroBasedIndex) const {
+        return tree_.select(zeroBasedIndex);
+    }
 };
 
 } // namespace key_multitude
