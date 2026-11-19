@@ -27,6 +27,7 @@ target_sources(keys_multitude INTERFACE
     FILE_SET HEADERS
     BASE_DIRS "${CMAKE_CURRENT_SOURCE_DIR}"
     FILES keyMultitude.hpp backends/vectorBackend.hpp backends/setBackend.hpp backends/bTreeBackend.hpp backends/AVLTreeBackend.hpp
+          backends/RBTreeBackend.hpp
 )
 
 if(KEYS_MULTITUDE_BUILD_EXECUTABLE)
