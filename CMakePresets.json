@@ -31,6 +31,16 @@
       }
     },
     {
+      "name": "benchmarks",
+      "inherits": "release",
+      "cacheVariables": {
+        "KEYS_MULTITUDE_BUILD_BENCHMARKS": true,
+        "KEYS_MULTITUDE_BUILD_TESTS": false,
+        "KEYS_MULTITUDE_BUILD_EXECUTABLE": false,
+        "KEYS_MULTITUDE_INSTALL": false
+      }
+    },
+    {
       "name": "profile",
       "inherits": "base",
       "cacheVariables": {
@@ -62,6 +72,10 @@
     {
       "name": "release",
       "configurePreset": "release"
+    },
+    {
+      "name": "benchmarks",
+      "configurePreset": "benchmarks"
     },
     {
       "name": "profile",

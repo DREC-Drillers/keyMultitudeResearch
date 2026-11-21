@@ -4,7 +4,7 @@
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-26.05";
     generalFunctions = {
-      url = "git+https://github.com/DREC-Drillers/generalFunctions.git?ref=main";
+      url = "git+https://github.com/DREC-Drillers/generalFunctions.git?ref=binary_trees_rework";
       inputs.nixpkgs.follows = "nixpkgs";
     };
   };
@@ -15,7 +15,7 @@
       pkgs = import nixpkgs { inherit system; };
       llvm = pkgs.llvmPackages_18;
       gtest = pkgs.gtest.override { stdenv = llvm.stdenv; };
-      python = pkgs.python3.withPackages (packages: [ packages.pyyaml ]);
+      python = pkgs.python3.withPackages (packages: [ packages.pyyaml packages.matplotlib ]);
       generalFunctionsPackage = generalFunctions.packages.${system}.default.override {
         buildLexer = false;
         buildGeometry = false;
@@ -63,7 +63,7 @@
         installed-consumer = installedConsumerCheck;
       };
       devShells.${system}.default = mkShell {
-        buildInputs = [ generalFunctionsPackage gtest ];
+        buildInputs = [ generalFunctionsPackage gtest pkgs.gbenchmark ];
         packages = [ pkgs.cmake pkgs.ninja pkgs.git python llvm.clang-tools ] ++ qualityTools;
         shellHook = ''
           echo "KeysMultitude environment: C++20, LLVM 18, CMake, Ninja and Python."

@@ -11,6 +11,7 @@ find_package(GeneralFunctions CONFIG REQUIRED COMPONENTS tree)
 option(KEYS_MULTITUDE_BUILD_TESTS "Build and register library tests" "${PROJECT_IS_TOP_LEVEL}")
 option(KEYS_MULTITUDE_BUILD_EXECUTABLE "Build the keyMultitude executable" "${PROJECT_IS_TOP_LEVEL}")
 option(KEYS_MULTITUDE_INSTALL "Generate library installation rules" "${PROJECT_IS_TOP_LEVEL}")
+option(KEYS_MULTITUDE_BUILD_BENCHMARKS "Build Google Benchmark benchmarks" OFF)
 
 add_library(keys_multitude INTERFACE)
 add_library(KeysMultitude::keys_multitude ALIAS keys_multitude)
@@ -34,6 +35,16 @@ if(KEYS_MULTITUDE_BUILD_EXECUTABLE)
     add_executable(keyMultitude main.cpp)
     target_link_libraries(keyMultitude PRIVATE KeysMultitude::keys_multitude)
     set_target_properties(keyMultitude PROPERTIES CXX_EXTENSIONS OFF)
+endif()
+
+if(KEYS_MULTITUDE_BUILD_BENCHMARKS)
+    find_package(benchmark CONFIG REQUIRED)
+    add_executable(keys_multitude_benchmarks
+        benchmarks/main.cpp
+        benchmarks/registerWorkload.cpp)
+    target_link_libraries(keys_multitude_benchmarks PRIVATE
+        KeysMultitude::keys_multitude benchmark::benchmark)
+    set_target_properties(keys_multitude_benchmarks PROPERTIES CXX_EXTENSIONS OFF)
 endif()
 
 if(KEYS_MULTITUDE_INSTALL)
