@@ -2,7 +2,8 @@ if(NOT TARGET GTest::gtest_main)
     find_package(GTest 1.17 CONFIG REQUIRED)
 endif()
 
-add_executable(key_multitude_tests key_multitude_test.cpp btree_queries_test.cpp avl_backend_test.cpp)
+add_executable(key_multitude_tests key_multitude_test.cpp btree_queries_test.cpp
+    avl_backend_test.cpp range_workload_test.cpp)
 target_link_libraries(key_multitude_tests PRIVATE
     KeysMultitude::keys_multitude GTest::gtest_main)
 set_target_properties(key_multitude_tests PROPERTIES CXX_EXTENSIONS OFF)
