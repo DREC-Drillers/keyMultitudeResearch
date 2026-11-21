@@ -39,9 +39,21 @@ endif()
 
 if(KEYS_MULTITUDE_BUILD_BENCHMARKS)
     find_package(benchmark CONFIG REQUIRED)
+    find_package(Python3 3.11 REQUIRED COMPONENTS Interpreter)
+    set(benchmark_btree_suite "${CMAKE_CURRENT_SOURCE_DIR}/benchmarks/suites/btree-degree.toml")
+    set(benchmark_degree_reader "${CMAKE_CURRENT_SOURCE_DIR}/benchmarks/btree_degrees.py")
+    set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS
+        "${benchmark_btree_suite}" "${benchmark_degree_reader}")
+    execute_process(
+        COMMAND "${Python3_EXECUTABLE}" "${benchmark_degree_reader}" "${benchmark_btree_suite}"
+        OUTPUT_VARIABLE BENCHMARK_BTREE_DEGREES
+        OUTPUT_STRIP_TRAILING_WHITESPACE
+        COMMAND_ERROR_IS_FATAL ANY)
+    configure_file(benchmarks/btreeDegrees.hpp.in generated/btreeDegrees.hpp @ONLY)
     add_executable(keys_multitude_benchmarks
         benchmarks/main.cpp
         benchmarks/registerWorkload.cpp)
+    target_include_directories(keys_multitude_benchmarks PRIVATE "${CMAKE_CURRENT_BINARY_DIR}/generated")
     target_link_libraries(keys_multitude_benchmarks PRIVATE
         KeysMultitude::keys_multitude benchmark::benchmark)
     set_target_properties(keys_multitude_benchmarks PROPERTIES CXX_EXTENSIONS OFF)

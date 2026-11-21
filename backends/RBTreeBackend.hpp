@@ -3,7 +3,6 @@
 #include <cstddef>
 #include <functional>
 #include <stdexcept>
-
 #include <tree/red_black_tree.hpp>
 
 namespace key_multitude {
@@ -21,14 +20,17 @@ public:
 
     std::size_t size() const noexcept { return tree_.size(); }
 
-    std::size_t countKeysLessThan(int key) const { return tree_.countKeysLessThan(key); }
+    std::size_t countKeysLessThan(int key) const {
+        return tree_.countKeysLessThan(key);
+    }
 
     std::size_t countKeysInRange(int left, int right) const {
         if (left > right) {
             throw std::invalid_argument(
                 "Left range boundary must not exceed right boundary");
         }
-        return tree_.countKeysLessThanOrEqual(right) - tree_.countKeysLessThanOrEqual(left);
+        return tree_.countKeysLessThanOrEqual(right) -
+               tree_.countKeysLessThanOrEqual(left);
     }
 
     int getKeyBySortedIndex(std::size_t zeroBasedIndex) const {

@@ -39,11 +39,13 @@ inline RangeWorkload makeRangeWorkload(int initialSize, int insertCount,
 
     RangeWorkload workload;
     workload.initialKeys.assign(keyPool.begin(), keyPool.begin() + initialSize);
-    workload.operations.reserve(static_cast<std::size_t>(insertCount + queryCount));
+    workload.operations.reserve(static_cast<std::size_t>(insertCount) +
+                                static_cast<std::size_t>(queryCount));
 
     for (int i = 0; i < insertCount; ++i) {
         workload.operations.emplace_back(
-            Insert{keyPool[static_cast<std::size_t>(initialSize + i)]});
+            Insert{keyPool[static_cast<std::size_t>(initialSize) +
+                           static_cast<std::size_t>(i)]});
     }
 
     const int rangeWidth = std::max(1, domainSize / 16);

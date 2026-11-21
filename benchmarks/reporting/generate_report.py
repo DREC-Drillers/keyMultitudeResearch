@@ -28,7 +28,6 @@ SWEEP_DESCRIPTIONS = {
 BACKEND_STYLES = {
     "vector": ("Вектор", "#0072B2", "o"),
     "set": ("std::set", "#009E73", "s"),
-    "btree16": ("B-дерево (t=16)", "#C47A00", "D"),
     "avl": ("AVL-дерево", "#A34F91", "^"),
     "rb": ("Красно-чёрное дерево", "#D45113", "P"),
 }
@@ -39,7 +38,15 @@ PANEL = "#F8FAFD"
 
 
 def backend_style(backend):
+    degree = btree_degree(backend)
+    if degree is not None:
+        return f"B-дерево (t={degree})", "#C47A00", "D"
     return BACKEND_STYLES.get(backend, (backend, "#536477", "o"))
+
+
+def btree_degree(backend):
+    match = re.fullmatch(r"btree([0-9]+)", backend)
+    return int(match[1]) if match else None
 
 
 def format_integer(value):
@@ -113,7 +120,7 @@ def style_axis(axis, grid_axis):
         spine.set_visible(False)
 
 
-def write_plot(path, title, workload, cases, *, size_sweep):
+def write_plot(path, title, workload, cases, *, size_sweep, degree_sweep):
     try:
         import matplotlib
     except ImportError as error:
@@ -125,7 +132,7 @@ def write_plot(path, title, workload, cases, *, size_sweep):
     with plt.rc_context({"font.family": "DejaVu Sans", "text.color": INK,
                          "axes.labelcolor": INK, "axes.titlecolor": INK}):
         if size_sweep:
-            write_size_plot(plt, path, title, workload, cases)
+            write_size_plot(plt, path, title, workload, cases, degree_sweep=degree_sweep)
         else:
             write_comparison_plot(plt, path, title, workload, cases)
 
@@ -157,39 +164,52 @@ def write_comparison_plot(plt, path, title, workload, cases):
     plt.close(fig)
 
 
-def write_size_plot(plt, path, title, workload, cases):
+def write_size_plot(plt, path, title, workload, cases, *, degree_sweep):
     from matplotlib.ticker import FuncFormatter, LogLocator, MaxNLocator, NullLocator
 
-    by_backend = defaultdict(list)
+    series = defaultdict(list)
     for parameters, rows in sorted(cases.items(), key=lambda case: sweep_size(case[0])):
         size = sweep_size(parameters)
         for row in rows:
-            by_backend[row["backend"]].append((size, row))
+            if degree_sweep:
+                series[size].append((btree_degree(row["backend"]), row))
+            else:
+                series[row["backend"]].append((size, row))
 
     fig, axis = plt.subplots(figsize=(10.6, 5.9))
     fig.subplots_adjust(left=0.095, right=0.972, top=0.765, bottom=0.17)
     style_axis(axis, "y")
-    for backend, samples in by_backend.items():
-        sizes = [size for size, _ in samples]
+    sizes_style = [
+        ("#0072B2", "o"), ("#009E73", "s"), ("#C47A00", "D"),
+        ("#A34F91", "^"), ("#D45113", "P"), ("#536477", "v"), ("#46899A", "X"),
+    ]
+    for index, (series_key, samples) in enumerate(series.items()):
+        samples.sort(key=lambda point: point[0])
+        x_values = [value for value, _ in samples]
         averages = [row["mean_ns_per_op"] for _, row in samples]
-        label, color, marker = backend_style(backend)
+        if degree_sweep:
+            label = format_integer(series_key)
+            color, marker = sizes_style[index % len(sizes_style)]
+        else:
+            label, color, marker = backend_style(series_key)
         axis.fill_between(
-            sizes,
+            x_values,
             [row["min_ns_per_op"] for _, row in samples],
             [row["max_ns_per_op"] for _, row in samples],
             color=color,
             alpha=0.11,
             linewidth=0,
         )
-        axis.plot(sizes, averages, marker=marker, label=label, color=color,
+        axis.plot(x_values, averages, marker=marker, label=label, color=color,
                   linewidth=2.3, markersize=6, markeredgecolor="white", markeredgewidth=0.7)
 
-    sizes = sorted(sweep_size(parameters) for parameters in cases)
+    x_ticks = sorted({value for samples in series.values() for value, _ in samples})
     axis.set_xscale("log", base=2)
-    axis.set_xticks(sizes, [format_integer(size) for size in sizes])
+    axis.set_xticks(x_ticks, [format_integer(value) for value in x_ticks])
     axis.xaxis.set_minor_locator(NullLocator())
     time_values = [row["mean_ns_per_op"] for rows in cases.values() for row in rows]
-    log_time = max(time_values) / min(time_values) >= 100
+    log_threshold = 10 if degree_sweep else 100
+    log_time = max(time_values) / min(time_values) >= log_threshold
     if log_time:
         axis.set_yscale("log")
         axis.yaxis.set_major_locator(LogLocator(base=10))
@@ -198,12 +218,16 @@ def write_size_plot(plt, path, title, workload, cases):
         axis.yaxis.set_major_locator(MaxNLocator(nbins=6, integer=True))
         axis.yaxis.set_major_formatter(FuncFormatter(lambda value, _: format_integer(int(value))))
         axis.set_ylim(bottom=0)
-    axis.set_xlabel("Размер множества, ключей (логарифмическая шкала)", labelpad=10)
+    x_label = ("Минимальная степень B-дерева, t (логарифмическая шкала)" if degree_sweep
+               else "Размер множества, ключей (логарифмическая шкала)")
+    axis.set_xlabel(x_label, labelpad=10)
     time_label = ("Время процессора на операцию (лог. шкала)" if log_time
                   else "Время процессора на операцию, нс")
     axis.set_ylabel(time_label, labelpad=10)
     fig.text(0.095, 0.951, title, fontsize=20, fontweight="bold", va="top")
-    fig.text(0.095, 0.892, SWEEP_DESCRIPTIONS.get(workload, "Один бэкенд — одна линия"),
+    subtitle = ("B-дерево · каждая линия — число ключей в начальном множестве"
+                if degree_sweep else SWEEP_DESCRIPTIONS.get(workload, "Один бэкенд — одна линия"))
+    fig.text(0.095, 0.892, subtitle,
              fontsize=11, color=MUTED, va="top")
     handles, labels = axis.get_legend_handles_labels()
     legend = dict(zip(labels, handles))
@@ -219,8 +243,12 @@ def write_size_plot(plt, path, title, workload, cases):
 
 
 def generate_report(raw, output, *, plot, expected=None):
+    return generate_report_from_samples(read_samples(raw, expected), output, plot=plot)
+
+
+def generate_report_from_samples(samples, output, *, plot):
     workloads = defaultdict(lambda: defaultdict(list))
-    for name, rates in read_samples(raw, expected).items():
+    for name, rates in samples.items():
         workload, backend, parameters = split_case_name(name)
         times = [1e9 / rate for rate in rates]
         row = {
@@ -248,16 +276,21 @@ def generate_report(raw, output, *, plot, expected=None):
         # A single size dimension is enough to get a comparison curve automatically.
         sizes = [sweep_size(parameters) for parameters in cases]
         size_sweep = all(size is not None for size in sizes) and len(set(sizes)) == len(sizes)
+        backends = {row["backend"] for group in cases.values() for row in group}
+        degrees = {btree_degree(backend) for backend in backends}
+        degree_sweep = size_sweep and None not in degrees and len(degrees) > 1
         markdown.extend(["", f"## {title}", "", f"[CSV]({workload}.csv)"])
         rows = []
         if size_sweep:
-            backends = sorted({row["backend"] for group in cases.values() for row in group})
+            backends = sorted(backends, key=btree_degree if degree_sweep else None)
+            columns = [f"t = {btree_degree(backend)}" if degree_sweep else backend_style(backend)[0]
+                       for backend in backends]
             markdown.extend([
                 "",
                 SWEEP_DESCRIPTIONS.get(workload, "Сравнение по размерам множества."),
                 "В таблице — среднее время процессора на операцию, нс.",
                 "",
-                "| Размер множества | " + " | ".join(backend_style(backend)[0] for backend in backends) + " |",
+                "| Размер множества | " + " | ".join(columns) + " |",
                 "|---:|" + "---:|" * len(backends),
             ])
             for parameters, case_rows in sorted(cases.items(), key=lambda case: sweep_size(case[0])):
@@ -270,7 +303,9 @@ def generate_report(raw, output, *, plot, expected=None):
                 markdown.append(f"| {format_integer(size)} | " + " | ".join(cells) + " |")
                 for row in case_rows:
                     row["size"] = size
-                rows.extend(sorted(case_rows, key=lambda row: row["backend"]))
+                    if degree_sweep:
+                        row["min_degree"] = btree_degree(row["backend"])
+                rows.extend(by_backend[backend] for backend in backends if backend in by_backend)
         else:
             for parameters, case_rows in sorted(cases.items()):
                 case_rows.sort(key=lambda row: row["median_ns_per_op"])
@@ -295,7 +330,8 @@ def generate_report(raw, output, *, plot, expected=None):
             writer.writerows(rows)
 
         if plot:
-            write_plot(output / f"{workload}.png", title, workload, cases, size_sweep=size_sweep)
+            write_plot(output / f"{workload}.png", title, workload, cases,
+                       size_sweep=size_sweep, degree_sweep=degree_sweep)
             markdown.extend(["", f"![{title}]({workload}.png)"])
 
     summary = output / "summary.md"
