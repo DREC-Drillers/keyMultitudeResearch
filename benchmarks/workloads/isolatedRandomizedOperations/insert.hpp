@@ -18,12 +18,13 @@ struct InsertWorkload {
         const int keysPerBatch = std::clamp(size / 100, 16, 256);
         const auto workload =
             WorkloadBuilder(size).singleBatch(keysPerBatch).build();
+        const auto populationKeys = makePopulationKeys(workload.multitudeStartSize);
 
         for ([[maybe_unused]] auto iteration : state) {
             state.PauseTiming();
             {
                 KeyMultitude<Backend> keys;
-                fillMultitude(keys, workload.multitudeStartSize);
+                fillMultitude(keys, populationKeys);
 
                 state.ResumeTiming();
                 std::size_t inserted = 0;

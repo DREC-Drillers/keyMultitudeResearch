@@ -52,8 +52,14 @@ def select_cases(cases, workloads, backends, sizes=None):
 def run_benchmarks(args, names):
     if args.repetitions < 1:
         raise ValueError("--repetitions must be at least 1")
-    if not 0 < args.min_time < float("inf"):
-        raise ValueError("--min-time must be a positive finite number of seconds")
+    if args.iterations is not None:
+        if args.iterations < 1:
+            raise ValueError("--iterations must be at least 1")
+        benchmark_budget = f"{args.iterations}x"
+    else:
+        if not 0 < args.min_time < float("inf"):
+            raise ValueError("--min-time must be a positive finite number of seconds")
+        benchmark_budget = f"{args.min_time:g}s"
 
     run_id = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S.%fZ")
     output = (args.output or ROOT / "build" / "benchmark-results" / run_id).resolve()
@@ -66,7 +72,7 @@ def run_benchmarks(args, names):
             str(args.binary),
             f"--benchmark_filter={benchmark_filter}",
             f"--benchmark_repetitions={args.repetitions}",
-            f"--benchmark_min_time={args.min_time:g}s",
+            f"--benchmark_min_time={benchmark_budget}",
             "--benchmark_enable_random_interleaving",
             f"--benchmark_out={raw}",
             "--benchmark_out_format=json",
@@ -93,7 +99,9 @@ def main():
     run_command.add_argument("--sizes", nargs="+", type=int,
                              help="Select registered set sizes. Default: all sizes")
     run_command.add_argument("--repetitions", type=int, default=5)
-    run_command.add_argument("--min-time", type=float, default=0.1, help="Seconds per case")
+    budget = run_command.add_mutually_exclusive_group()
+    budget.add_argument("--min-time", type=float, default=0.1, help="Seconds per case")
+    budget.add_argument("--iterations", type=int, help="Fixed number of batches per repetition")
     run_command.add_argument("--output", type=Path, help="New output directory")
     run_command.add_argument("--no-plot", action="store_true")
 

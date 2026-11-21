@@ -24,18 +24,31 @@ inline void registerMultitudeSizeSweep(const char* workload, const char* backend
     }
 }
 
-template <KeyMultitudeBackend Backend>
-void fillMultitude(KeyMultitude<Backend>& keys, int size) {
-    std::vector<int> positions(static_cast<std::size_t>(size));
-    std::iota(positions.begin(), positions.end(), 0);
+inline std::vector<int> makePopulationKeys(int size) {
+    std::vector<int> keys(static_cast<std::size_t>(size));
+    std::iota(keys.begin(), keys.end(), 0);
 
     constexpr auto POPULATION_SHUFFLE_SEED = 42U;
     std::mt19937 random(POPULATION_SHUFFLE_SEED);
-    std::shuffle(positions.begin(), positions.end(), random);
+    std::shuffle(keys.begin(), keys.end(), random);
 
-    for (int position : positions) {
-        keys.insertKey(2 * position);
+    for (int& key : keys) {
+        key *= 2;
     }
+    return keys;
+}
+
+template <KeyMultitudeBackend Backend>
+void fillMultitude(KeyMultitude<Backend>& keys,
+                   std::span<const int> populationKeys) {
+    for (int key : populationKeys) {
+        keys.insertKey(key);
+    }
+}
+
+template <KeyMultitudeBackend Backend>
+void fillMultitude(KeyMultitude<Backend>& keys, int size) {
+    fillMultitude(keys, makePopulationKeys(size));
 }
 
 } // namespace key_multitude::benchmark_workload
