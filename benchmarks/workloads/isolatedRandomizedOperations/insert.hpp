@@ -1,0 +1,36 @@
+#pragma once
+
+#include <algorithm>
+#include <benchmark/benchmark.h>
+#include <cstddef>
+
+#include "benchmarks/workloadBuilder/workloadBuilder.hpp"
+#include "benchmarks/workloads/workloadTemplates.hpp"
+
+namespace key_multitude::benchmark_workload {
+
+struct InsertWorkload {
+    static constexpr auto NAME = "insert";
+
+    template <KeyMultitudeBackend Backend>
+    static void measure(benchmark::State& state) {
+        const auto size = static_cast<int>(state.range(0));
+        const int keysPerBatch = std::clamp(size / 100, 16, 256);
+        const auto workload =
+            WorkloadBuilder(size).singleBatch(keysPerBatch).build();
+
+        measureWithFreshMultitude<Backend>(state,
+                                           workload.multitudeStartSize,
+                                           workload.keysPerBatch,
+                                           [&workload](auto& keys) {
+                                               std::size_t inserted = 0;
+                                               for (int key : workload.sampledKeys) {
+                                                   inserted +=
+                                                       keys.insertKey(key + 1);
+                                               }
+                                               return inserted;
+                                           });
+    }
+};
+
+} // namespace key_multitude::benchmark_workload

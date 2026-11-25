@@ -7,16 +7,16 @@
         ]
       },
       "locked": {
-        "lastModified": 1795645020,
-        "narHash": "sha256-Oc77py7drt8xTjOMeH9fsEU/XoqsC+z1nYP0GZLDc24=",
-        "ref": "main",
-        "rev": "183175b6cd9f3214eb1ca74db2dcf3e0d2f2c000",
-        "revCount": 125,
+        "lastModified": 1795202429,
+        "narHash": "sha256-PSMNf5EBwU6Uh4jBbbjYHWeLsNMWRCXLDyuX/IcGabk=",
+        "ref": "binary_trees_rework",
+        "rev": "a0a9d10a74a6b3d375497dac0c32da66ba31623a",
+        "revCount": 106,
         "type": "git",
         "url": "https://github.com/DREC-Drillers/generalFunctions.git"
       },
       "original": {
-        "ref": "main",
+        "ref": "binary_trees_rework",
         "type": "git",
         "url": "https://github.com/DREC-Drillers/generalFunctions.git"
       }

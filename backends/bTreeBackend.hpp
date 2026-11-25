@@ -26,10 +26,6 @@ public:
                 "Left range boundary must not exceed right boundary");
         }
 
-        if (left == right) {
-            return 0;
-        }
-
         return tree_.countKeysLessThanOrEqual(right) -
                tree_.countKeysLessThanOrEqual(left);
     }

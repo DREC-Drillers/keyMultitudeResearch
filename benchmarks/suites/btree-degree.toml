@@ -1,0 +1,12 @@
+btree_degrees = [2, 4, 8, 12, 16, 24, 32, 48, 64, 96, 128, 192, 256]
+sizes = [1_000_000]
+repetitions = 5
+report = "btree-degree"
+
+[[runs]]
+workloads = ["insert"]
+iterations = 1
+
+[[runs]]
+workloads = ["range_count", "select_rank", "count_less"]
+min_time = 0.02

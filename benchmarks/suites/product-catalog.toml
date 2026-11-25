@@ -1,0 +1,8 @@
+# Price filters and sorted pages dominate the traffic while new listings arrive.
+backends = ["vector", "set", "avl", "rb", "btree32"]
+sizes = [64_000, 250_000, 1_000_000]
+repetitions = 5
+
+[[runs]]
+workloads = ["product_catalog"]
+iterations = 1

@@ -1,0 +1,9 @@
+#pragma once
+
+#include <utility>
+
+namespace key_multitude::benchmark_workload {
+
+using BenchmarkBTreeDegrees = std::index_sequence<@BENCHMARK_BTREE_DEGREES@>;
+
+} // namespace key_multitude::benchmark_workload
