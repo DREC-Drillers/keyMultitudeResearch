@@ -4,6 +4,7 @@
 
 #include "benchmarks/registerBackends.hpp"
 #include "benchmarks/workloadBuilder/helpers.hpp"
+#include "benchmarks/workloads/insertQueryRatio.hpp"
 #include "benchmarks/workloads/isolatedRandomizedOperations/count_less.hpp"
 #include "benchmarks/workloads/isolatedRandomizedOperations/insert.hpp"
 #include "benchmarks/workloads/isolatedRandomizedOperations/range_count.hpp"
@@ -31,6 +32,24 @@ void registerWorkload(std::span<const int> sizes) {
     });
 }
 
+void registerMixedWorkloads() {
+    constexpr int MULTITUDE_SIZE = 1'000'000;
+    constexpr int PERCENT_STEP = 5;
+
+    forEachBackend([]<typename Backend>(const char* backend) {
+        for (const auto& [workload, profile] : InsertQueryRatioWorkload::PROFILES) {
+            registerInsertQueryRatioSweep(
+                workload,
+                backend,
+                MULTITUDE_SIZE,
+                PERCENT_STEP,
+                [profile](benchmark::State& state) {
+                    InsertQueryRatioWorkload::measure<Backend>(state, profile);
+                });
+        }
+    });
+}
+
 } // namespace
 
 void registerWorkloads() {
@@ -38,6 +57,7 @@ void registerWorkloads() {
     registerWorkload<RangeCountWorkload>(DEFAULT_MULTITUDE_SIZES);
     registerWorkload<SelectRankWorkload>(DEFAULT_MULTITUDE_SIZES);
     registerWorkload<CountLessWorkload>(DEFAULT_MULTITUDE_SIZES);
+    registerMixedWorkloads();
 }
 
 } // namespace key_multitude::benchmark_workload

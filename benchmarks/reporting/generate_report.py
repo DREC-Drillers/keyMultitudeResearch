@@ -16,6 +16,10 @@ WORKLOAD_TITLES = {
     "lookup": "Как размер множества влияет на время поиска",
     "range_queries": "Вставки и запросы по диапазону",
     "rank": "Выбор ключа по рангу",
+    "mixed_range_count": "Вставки и подсчёт в диапазоне",
+    "mixed_select_rank": "Вставки и выбор по рангу",
+    "mixed_count_less": "Вставки и подсчёт меньших ключей",
+    "mixed_all_queries": "Вставки и все три типа запросов",
 }
 SWEEP_DESCRIPTIONS = {
     "insert": "Новые уникальные ключи · 16–256 вставок около начального размера",
@@ -74,9 +78,10 @@ def split_case_name(name):
 
 def case_label(workload, parameters):
     values = dict(part.split(":", 1) for part in parameters.split("/") if ":" in part)
-    if workload == "range_queries" and {"initial_size", "insert_pct"} <= values.keys():
+    size_key = "initial_size" if workload == "range_queries" else "size"
+    if {size_key, "insert_pct"} <= values.keys():
         insert = int(values["insert_pct"])
-        size = format_integer(int(values["initial_size"]))
+        size = format_integer(int(values[size_key]))
         return f"{size} ключей в начале · вставки / запросы: {insert} / {100 - insert} %"
     if workload == "rank" and "size" in values:
         return f"{format_integer(int(values['size']))} ключей"
@@ -85,6 +90,11 @@ def case_label(workload, parameters):
 
 def sweep_size(parameters):
     match = re.search(r"(?:^|/)size:([1-9][0-9]*)(?:/|$)", parameters)
+    return int(match[1]) if match else None
+
+
+def insert_percentage(parameters):
+    match = re.search(r"(?:^|/)insert_pct:([0-9]+)(?:/|$)", parameters)
     return int(match[1]) if match else None
 
 
@@ -269,13 +279,15 @@ def generate_report_from_samples(samples, output, *, plot):
         "",
         "Меньше времени на операцию — лучше.",
     ]
-    if plot:
-        markdown.append("Графики показывают измеренное время и разброс повторов.")
+    has_plots = False
     for workload, cases in sorted(workloads.items()):
         title = WORKLOAD_TITLES.get(workload, workload)
         # A single size dimension is enough to get a comparison curve automatically.
         sizes = [sweep_size(parameters) for parameters in cases]
+        ratio_sweep = all(size is not None and insert_percentage(parameters) is not None
+                          for parameters, size in zip(cases, sizes))
         size_sweep = all(size is not None for size in sizes) and len(set(sizes)) == len(sizes)
+        size_sweep = size_sweep and not ratio_sweep
         backends = {row["backend"] for group in cases.values() for row in group}
         degrees = {btree_degree(backend) for backend in backends}
         degree_sweep = size_sweep and None not in degrees and len(degrees) > 1
@@ -307,8 +319,13 @@ def generate_report_from_samples(samples, output, *, plot):
                         row["min_degree"] = btree_degree(row["backend"])
                 rows.extend(by_backend[backend] for backend in backends if backend in by_backend)
         else:
-            for parameters, case_rows in sorted(cases.items()):
+            for parameters, case_rows in sorted(cases.items(),
+                                                key=lambda case: (insert_percentage(case[0]) or 0, case[0])):
                 case_rows.sort(key=lambda row: row["median_ns_per_op"])
+                if ratio_sweep:
+                    for row in case_rows:
+                        row["size"] = sweep_size(parameters)
+                        row["insert_pct"] = insert_percentage(parameters)
                 rows.extend(case_rows)
                 markdown.extend([
                     "",
@@ -329,10 +346,14 @@ def generate_report_from_samples(samples, output, *, plot):
             writer.writeheader()
             writer.writerows(rows)
 
-        if plot:
+        if plot and not ratio_sweep:
             write_plot(output / f"{workload}.png", title, workload, cases,
                        size_sweep=size_sweep, degree_sweep=degree_sweep)
             markdown.extend(["", f"![{title}]({workload}.png)"])
+            has_plots = True
+
+    if has_plots:
+        markdown.insert(3, "Графики показывают измеренное время и разброс повторов.")
 
     summary = output / "summary.md"
     summary.write_text("\n".join(markdown) + "\n", encoding="utf-8")

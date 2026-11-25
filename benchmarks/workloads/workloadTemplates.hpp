@@ -31,4 +31,26 @@ void measureReadQueries(benchmark::State& state, const PreparedWorkload& workloa
     state.SetItemsProcessed(state.iterations() * workload.keysPerBatch);
 }
 
+template <KeyMultitudeBackend Backend, typename RunBatch>
+void measureWithFreshMultitude(benchmark::State& state, int multitudeStartSize,
+                               int operationsPerBatch, RunBatch runBatch) {
+    const auto populationKeys = makePopulationKeys(multitudeStartSize);
+
+    for (auto iteration : state) {
+        state.PauseTiming();
+        {
+            KeyMultitude<Backend> keys;
+            fillMultitude(keys, populationKeys);
+
+            state.ResumeTiming();
+            auto checksum = runBatch(keys);
+            benchmark::DoNotOptimize(checksum);
+            state.PauseTiming();
+        }
+        state.ResumeTiming();
+    }
+
+    state.SetItemsProcessed(state.iterations() * operationsPerBatch);
+}
+
 } // namespace key_multitude::benchmark_workload
