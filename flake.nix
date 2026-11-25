@@ -4,7 +4,7 @@
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-26.05";
     generalFunctions = {
-      url = "git+https://github.com/DREC-Drillers/generalFunctions.git?ref=binary_trees_rework";
+      url = "git+https://github.com/DREC-Drillers/generalFunctions.git?ref=main";
       inputs.nixpkgs.follows = "nixpkgs";
     };
   };

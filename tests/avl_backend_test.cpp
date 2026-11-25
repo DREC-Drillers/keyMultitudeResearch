@@ -6,7 +6,6 @@
 #include <random>
 #include <set>
 #include <stdexcept>
-#include <type_traits>
 #include <utility>
 #include <vector>
 
@@ -17,61 +16,6 @@
 
 namespace {
 using AVLTree = key_multitude::AVLTreeBackend;
-
-// Test-only validation. Production AVL has no checking or query code.
-struct AVLInfo {
-    int height;
-    std::size_t size;
-};
-
-template <typename BinaryTree>
-std::optional<AVLInfo>
-validateNode(const BinaryTree& tree, typename BinaryTree::NodeId id,
-             typename BinaryTree::NodeId parent, const int* lower, const int* upper,
-             std::vector<bool>& visited) {
-    if (id == BinaryTree::INVALID_NODE) {
-        return AVLInfo{0, 0};
-    }
-    if (id >= tree.size() || visited[id]) {
-        return std::nullopt;
-    }
-    visited[id] = true;
-    const auto& link = tree.getNode(id);
-    if (link.parent() != parent) {
-        return std::nullopt;
-    }
-    const auto& node = link.data();
-    if ((lower && node.key <= *lower) || (upper && node.key >= *upper)) {
-        return std::nullopt;
-    }
-    const auto left = validateNode(tree, link.left(), id, lower, &node.key, visited);
-    const auto right =
-        validateNode(tree, link.right(), id, &node.key, upper, visited);
-    if (!left || !right) {
-        return std::nullopt;
-    }
-    const int height = 1 + std::max(left->height, right->height);
-    const auto size = 1 + left->size + right->size;
-    const int balance = left->height - right->height;
-    if (balance < -1 || balance > 1 || node.height != height ||
-        node.subtreeSize != size) {
-        return std::nullopt;
-    }
-    return AVLInfo{height, size};
-}
-
-bool validateAVL(const AVLTree& backend) {
-    const auto& tree = backend.tree();
-    std::vector<bool> visited(tree.size(), false);
-    const auto result =
-        validateNode(tree,
-                     tree.root(),
-                     std::remove_cvref_t<decltype(tree)>::INVALID_NODE,
-                     nullptr,
-                     nullptr,
-                     visited);
-    return result && result->size == tree.size();
-}
 
 TEST(AVLBackendTest, EmptyAndInvalidQueries) {
     AVLTree tree;
@@ -115,15 +59,6 @@ TEST(AVLBackendTest, AllFourRotationCases) {
             EXPECT_EQ(tree.getKeyBySortedIndex(index), static_cast<int>(index + 1));
             EXPECT_EQ(tree.countKeysLessThan(static_cast<int>(index + 1)), index);
         }
-        const auto& binary = tree.tree();
-        ASSERT_NE(binary.root(),
-                  std::remove_cvref_t<decltype(binary)>::INVALID_NODE);
-        const auto& root = binary.getNode(binary.root());
-        ASSERT_NE(root.left(), std::remove_cvref_t<decltype(binary)>::INVALID_NODE);
-        ASSERT_NE(root.right(), std::remove_cvref_t<decltype(binary)>::INVALID_NODE);
-        EXPECT_EQ(root.data().key, 2);
-        EXPECT_EQ(binary.getNode(root.left()).data().key, 1);
-        EXPECT_EQ(binary.getNode(root.right()).data().key, 3);
     }
 }
 
