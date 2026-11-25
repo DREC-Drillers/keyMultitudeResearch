@@ -7,27 +7,27 @@
         ]
       },
       "locked": {
-        "lastModified": 1795202429,
-        "narHash": "sha256-PSMNf5EBwU6Uh4jBbbjYHWeLsNMWRCXLDyuX/IcGabk=",
-        "ref": "binary_trees_rework",
-        "rev": "a0a9d10a74a6b3d375497dac0c32da66ba31623a",
-        "revCount": 106,
+        "lastModified": 1795645020,
+        "narHash": "sha256-Oc77py7drt8xTjOMeH9fsEU/XoqsC+z1nYP0GZLDc24=",
+        "ref": "main",
+        "rev": "183175b6cd9f3214eb1ca74db2dcf3e0d2f2c000",
+        "revCount": 125,
         "type": "git",
         "url": "https://github.com/DREC-Drillers/generalFunctions.git"
       },
       "original": {
-        "ref": "binary_trees_rework",
+        "ref": "main",
         "type": "git",
         "url": "https://github.com/DREC-Drillers/generalFunctions.git"
       }
     },
     "nixpkgs": {
       "locked": {
-        "lastModified": 1791426274,
-        "narHash": "sha256-MWhktfFtFE8Jl7bf9Pkp7TR5MSdYCjCswSo0Gkb4ywc=",
+        "lastModified": 1795370043,
+        "narHash": "sha256-s/0jq8usZtLVOolYBwmyUmd3JsfAu7w3FU+a0dgMqSY=",
         "owner": "NixOS",
         "repo": "nixpkgs",
-        "rev": "7c8764b7c7b09b34f632464276218ef9090eaa11",
+        "rev": "0dc498bfe49baeb18b0f9891e800b53bb2603193",
         "type": "github"
       },
       "original": {
