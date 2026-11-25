@@ -4,8 +4,8 @@
 #include <benchmark/benchmark.h>
 #include <cstddef>
 
-#include "benchmarks/workloadBuilder/helpers.hpp"
 #include "benchmarks/workloadBuilder/workloadBuilder.hpp"
+#include "benchmarks/workloads/workloadTemplates.hpp"
 
 namespace key_multitude::benchmark_workload {
 
@@ -18,25 +18,18 @@ struct InsertWorkload {
         const int keysPerBatch = std::clamp(size / 100, 16, 256);
         const auto workload =
             WorkloadBuilder(size).singleBatch(keysPerBatch).build();
-        const auto populationKeys = makePopulationKeys(workload.multitudeStartSize);
 
-        for ([[maybe_unused]] auto iteration : state) {
-            state.PauseTiming();
-            {
-                KeyMultitude<Backend> keys;
-                fillMultitude(keys, populationKeys);
-
-                state.ResumeTiming();
-                std::size_t inserted = 0;
-                for (int key : workload.sampledKeys) {
-                    inserted += keys.insertKey(key + 1);
-                }
-                benchmark::DoNotOptimize(inserted);
-                state.PauseTiming();
-            }
-            state.ResumeTiming();
-        }
-        state.SetItemsProcessed(state.iterations() * workload.keysPerBatch);
+        measureWithFreshMultitude<Backend>(state,
+                                           workload.multitudeStartSize,
+                                           workload.keysPerBatch,
+                                           [&workload](auto& keys) {
+                                               std::size_t inserted = 0;
+                                               for (int key : workload.sampledKeys) {
+                                                   inserted +=
+                                                       keys.insertKey(key + 1);
+                                               }
+                                               return inserted;
+                                           });
     }
 };
 

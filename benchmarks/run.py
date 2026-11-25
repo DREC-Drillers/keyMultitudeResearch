@@ -10,12 +10,17 @@ import subprocess
 from reporting.generate_report import (btree_degree, generate_report, generate_report_from_samples,
                                        read_samples, split_case_name, sweep_size)
 from reporting.plot_btree_tradeoff import prepare_btree_degree_report
+from reporting.plot_insert_query_ratio import prepare_insert_query_report
 from suite import benchmark_budget, expand_backends, load_suite, read_suite_config
 
 
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_SUITE = ROOT / "benchmarks" / "suites" / "default.toml"
-REPORTS = {"standard": None, "btree-degree": prepare_btree_degree_report}
+REPORTS = {
+    "standard": None,
+    "btree-degree": prepare_btree_degree_report,
+    "insert-query-ratio": prepare_insert_query_report,
+}
 
 
 def discover(binary):
@@ -108,10 +113,12 @@ def run_suite(args, cases):
                                run.repetitions, run.budget))
     summary = generate_report_from_samples(samples, output, plot=not args.no_plot)
     if render_report and not args.no_plot:
-        graph = render_report(output)
+        artifacts = render_report(output)
         with summary.open("a", encoding="utf-8") as stream:
-            stream.write(f"\n[Сводный график]({graph.name})\n")
-        print(f"Plot: {graph}")
+            stream.write("\n" + " · ".join(f"[{label}]({path.name})"
+                                          for label, path in artifacts.items()) + "\n")
+        for path in artifacts.values():
+            print(f"{'Plot' if path.suffix == '.png' else 'Table'}: {path}")
     return summary
 
 

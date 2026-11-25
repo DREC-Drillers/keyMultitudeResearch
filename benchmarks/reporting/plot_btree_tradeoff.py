@@ -120,7 +120,7 @@ def write_btree_degree_report(results, *, size):
     degrees, measurements = load_measurements(results, size)
     graph = results / f"degreeTradeoff-{size}.png"
     write_tradeoff_plot(graph, degrees, measurements)
-    return graph
+    return {"Сводный график": graph}
 
 
 def main():

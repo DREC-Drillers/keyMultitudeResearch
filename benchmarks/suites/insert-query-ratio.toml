@@ -1,0 +1,8 @@
+backends = ["vector", "set", "avl", "rb", "btree32"]
+sizes = [1_000_000]
+repetitions = 5
+report = "insert-query-ratio"
+
+[[runs]]
+workloads = ["mixed_range_count", "mixed_select_rank", "mixed_count_less", "mixed_all_queries"]
+iterations = 1

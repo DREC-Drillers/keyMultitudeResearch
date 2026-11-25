@@ -6,7 +6,9 @@
 #include <numeric>
 #include <random>
 #include <span>
+#include <stdexcept>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include "keyMultitude.hpp"
@@ -22,6 +24,22 @@ inline void registerMultitudeSizeSweep(const char* workload, const char* backend
     for (int size : sizes) {
         entry->Arg(size);
     }
+}
+
+template <typename Measure>
+void registerInsertQueryRatioSweep(const char* workload, const char* backend,
+                                   int size, int percentStep, Measure measure) {
+    if (percentStep <= 0) {
+        throw std::invalid_argument("Insert percentage step must be positive");
+    }
+
+    auto* entry = benchmark::RegisterBenchmark(std::string(workload) + "/" + backend,
+                                               std::move(measure))
+                      ->ArgNames({"size", "insert_pct"});
+    for (int percent = 0; percent < 100; percent += percentStep) {
+        entry->Args({size, percent});
+    }
+    entry->Args({size, 100});
 }
 
 inline std::vector<int> makePopulationKeys(int size) {
