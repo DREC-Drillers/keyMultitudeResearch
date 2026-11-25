@@ -92,7 +92,7 @@ def write_tradeoff_plot(output, degrees, measurements):
         axis.set_ylabel("Время процессора на операцию (лог. шкала)", labelpad=10)
         axis.legend(loc="lower left", bbox_to_anchor=(-0.008, 1.02), ncols=5,
                     frameon=False, fontsize=9, columnspacing=1.2)
-        fig.text(0.1, 0.96, "Выбор минимальной степени B-дерева",
+        fig.text(0.1, 0.96, "Выбор оптимальной степени B-дерева",
                  fontsize=21, fontweight="bold", va="top")
 
         output.parent.mkdir(parents=True, exist_ok=True)

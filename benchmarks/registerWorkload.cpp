@@ -9,6 +9,7 @@
 #include "benchmarks/workloads/isolatedRandomizedOperations/insert.hpp"
 #include "benchmarks/workloads/isolatedRandomizedOperations/range_count.hpp"
 #include "benchmarks/workloads/isolatedRandomizedOperations/select_rank.hpp"
+#include "benchmarks/workloads/productCatalog.hpp"
 
 namespace key_multitude::benchmark_workload {
 
@@ -58,6 +59,7 @@ void registerWorkloads() {
     registerWorkload<SelectRankWorkload>(DEFAULT_MULTITUDE_SIZES);
     registerWorkload<CountLessWorkload>(DEFAULT_MULTITUDE_SIZES);
     registerMixedWorkloads();
+    registerWorkload<ProductCatalogWorkload>(DEFAULT_MULTITUDE_SIZES);
 }
 
 } // namespace key_multitude::benchmark_workload

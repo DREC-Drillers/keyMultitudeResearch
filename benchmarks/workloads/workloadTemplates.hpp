@@ -2,6 +2,7 @@
 
 #include <benchmark/benchmark.h>
 #include <cstddef>
+#include <span>
 #include <utility>
 
 #include "benchmarks/workloadBuilder/helpers.hpp"
@@ -32,10 +33,9 @@ void measureReadQueries(benchmark::State& state, const PreparedWorkload& workloa
 }
 
 template <KeyMultitudeBackend Backend, typename RunBatch>
-void measureWithFreshMultitude(benchmark::State& state, int multitudeStartSize,
+void measureWithFreshMultitude(benchmark::State& state,
+                               std::span<const int> populationKeys,
                                int operationsPerBatch, RunBatch runBatch) {
-    const auto populationKeys = makePopulationKeys(multitudeStartSize);
-
     for (auto iteration : state) {
         state.PauseTiming();
         {
@@ -51,6 +51,14 @@ void measureWithFreshMultitude(benchmark::State& state, int multitudeStartSize,
     }
 
     state.SetItemsProcessed(state.iterations() * operationsPerBatch);
+}
+
+template <KeyMultitudeBackend Backend, typename RunBatch>
+void measureWithFreshMultitude(benchmark::State& state, int multitudeStartSize,
+                               int operationsPerBatch, RunBatch runBatch) {
+    const auto populationKeys = makePopulationKeys(multitudeStartSize);
+    measureWithFreshMultitude<Backend>(
+        state, populationKeys, operationsPerBatch, std::move(runBatch));
 }
 
 } // namespace key_multitude::benchmark_workload
