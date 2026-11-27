@@ -2,10 +2,9 @@
 
 #include <cstddef>
 #include <filesystem>
+#include <lexer/token_stream.h>
 #include <variant>
 #include <vector>
-
-#include <lexer/token_stream.h>
 
 namespace key_multitude {
 
@@ -26,7 +25,8 @@ struct CountLessThan {
     int key;
 };
 
-using Command = std::variant<InsertKey, CountInRange, FindKthSmallest, CountLessThan>;
+using Command =
+    std::variant<InsertKey, CountInRange, FindKthSmallest, CountLessThan>;
 
 class Parser {
 public:
