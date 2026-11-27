@@ -32,8 +32,10 @@ target_sources(keys_multitude INTERFACE
 )
 
 if(KEYS_MULTITUDE_BUILD_EXECUTABLE)
-    add_executable(keyMultitude main.cpp)
-    target_link_libraries(keyMultitude PRIVATE KeysMultitude::keys_multitude)
+    find_package(GeneralFunctions CONFIG REQUIRED COMPONENTS lexer files)
+    add_executable(keyMultitude main.cpp parser/parser.cpp)
+    target_link_libraries(keyMultitude PRIVATE
+        GeneralFunctions::lexer GeneralFunctions::files KeysMultitude::keys_multitude)
     set_target_properties(keyMultitude PROPERTIES CXX_EXTENSIONS OFF)
 endif()
 

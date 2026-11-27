@@ -17,7 +17,8 @@
       gtest = pkgs.gtest.override { stdenv = llvm.stdenv; };
       python = pkgs.python3.withPackages (packages: [ packages.pyyaml packages.matplotlib ]);
       generalFunctionsPackage = generalFunctions.packages.${system}.default.override {
-        buildLexer = false;
+        buildLexer = true;
+        buildFiles = true;
         buildGeometry = false;
         buildTree = true;
         buildBvh = false;
